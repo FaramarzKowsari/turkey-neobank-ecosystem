@@ -1,1 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neobanking Frontier: Turkey's Digital Ecosystem</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Core - Standard JS Version -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+        .animate-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
+    <script type="text/babel">
+        /**
+         * کامپوننت آیکون اصلاح شده
+         * این نسخه به جای پیمایش دستی آرایه، از متد داخلی لوساید برای تولید اس‌وی‌جی استفاده می‌کند
+         * تا از بروز خطاهای مربوط به ساختار داده جلوگیری شود.
+         */
+        const Icon = ({ name, size = 24, className = "", ...props }) => {
+            const [svgHtml, setSvgHtml] = React.useState("");
+
+            React.useEffect(() => {
+                const renderIcon = () => {
+                    if (window.lucide && window.lucide.icons && window.lucide.icons[name]) {
+                        // استفاده از متد داخلی برای تولید رشته SVG
+                        const icon = window.lucide.icons[name];
+                        const svgString = window.lucide.createIcons({
+                            icons: { [name]: icon },
+                            attrs: {
+                                width: size,
+                                height: size,
+                                class: className,
+                                stroke: "currentColor",
+                                "stroke-width": 2,
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                fill: "none"
+                            }
+                        });
+                        
+                        // در نسخه‌های CDN، لوساید مستقیماً با DOM کار می‌کند. 
+                        // برای ری‌اکت، ما داده‌های آیکون را استخراج می‌کنیم.
+                        const paths = icon[2].map(node => {
+                            const [tag, attrs] = node;
+                            const attrStr = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+                            return `<${tag} ${attrStr}></${tag}>`;
+                        }).join('');
+                        setSvgHtml(paths);
+                    }
+                };
+
+                // بررسی دوره‌ای برای اطمینان از بارگذاری کامل کتابخانه
+                const checkLucide = setInterval(() => {
+                    if (window.lucide) {
+                        renderIcon();
+                        clearInterval(checkLucide);
+                    }
+                }, 50);
+                
+                return () => clearInterval(checkLucide);
+            }, [name, size, className]);
+
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`lucide-icon ${className}`}
+                    dangerouslySetInnerHTML={{ __html: svgHtml }}
+                    {...props}
+                />
+            );
+        };
+
+        const translations = {
+            en: {
+                title: "The Neobank Revolution in Turkey",
+                chapters: "Modules",
+                viewSite: "Visit Official Site",
+                playerTitle: "AI Audio Guide",
+                playing: "Now Reading...",
+                paused: "Paused",
+                speed: "Speed",
+                volume: "Volume",
+                startPrompt: "Click to start the Experience",
+                designerInfo: "Designed by Faramarz Kowsari",
+                contact: "Contact",
+                books: "Books",
+                quizTitle: "Knowledge Assessment",
+                glossaryTitle: "FinTech Glossary",
+                chartsTitle: "Growth Statistics",
+                score: "Your Score",
+                reset: "Restart Quiz",
+                feeTable: {
+                    feature: "Feature",
+                    neobank: "Neobanks",
+                    traditional: "Traditional Banks",
+                    eft: "EFT / FAST Transfer",
+                    accountFee: "Account Maintenance",
+                    cardFee: "Annual Card Fee",
+                    free: "Always Free",
+                    variable: "Variable / High"
+                },
+                sim: {
+                    bankName: "Istanbul Futures",
+                    tagline: "Next-Gen Neobank Simulator",
+                    openAccount: "Open Account",
+                    existingUser: "Login",
+                    regTitle: "Create Account",
+                    regSub: "Enter your details accurately",
+                    fullName: "Full Name",
+                    idNumber: "ID Number",
+                    password: "Password",
+                    next: "Next Step",
+                    kycTitle: "Biometric KYC",
+                    kycSub: "Place your ID card in front of the camera",
+                    scanning: "Scanning...",
+                    complete: "Complete",
+                    verifiedMsg: "Account activated!",
+                    hi: "Hi",
+                    totalBalance: "Total Balance",
+                    transfer: "Transfer",
+                    deposit: "Deposit",
+                    withdraw: "Withdraw",
+                    invest: "Invest",
+                    loan: "Loan",
+                    loanBanner: "Instant Loan",
+                    loanSub: "Up to 50,000 TL",
+                    recentActivity: "Recent Activity",
+                    noTx: "No transactions",
+                    settings: "Settings",
+                    notifications: "Notifications",
+                    security: "Security",
+                    logout: "Logout",
+                    loanApproved: "Loan Disbursed!",
+                    minInvest: "Min 1,000 TL required",
+                    investSuccess: "22% APY Active",
+                    iban: "IBAN",
+                    amount: "Amount (TL)",
+                    confirmSend: "Confirm",
+                    lowBalance: "Low balance",
+                    sentSuccess: "Success",
+                    qrWithdraw: "QR Withdrawal",
+                    qrSub: "Scan QR at ATM",
+                    back: "Back"
+                },
+                sections: {
+                    intro: {
+                        title: "Introduction",
+                        content: "Neobanks are 100% digital banking entities without physical branches. In Turkey, they represent a disruptive shift focusing on lower costs and superior UX.",
+                        image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    simulation: {
+                        title: "Live Simulator",
+                        content: "Interactive simulation for KYC, transfers, loans, and investments.",
+                        isSimulation: true,
+                        image: "https://images.unsplash.com/photo-1550565118-3a14e8d0386f?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    stats: {
+                        title: "Market Statistics",
+                        content: "Analysis of the exponential growth of digital banking users in Turkey (2018-2024).",
+                        isChart: true,
+                        image: "https://images.unsplash.com/photo-1551288049-bbda0231f67e?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    fees: {
+                        title: "Fee Comparison",
+                        content: "Analysis of zero-fee structures versus legacy banking costs.",
+                        isTable: true,
+                        image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    glossary: {
+                        title: "FinTech Glossary",
+                        content: "Key definitions for professional understanding of the Turkish FinTech ecosystem.",
+                        isGlossary: true,
+                        image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    quiz: {
+                        title: "Final Assessment",
+                        content: "Test your knowledge about Turkish neobanking regulations and market dynamics.",
+                        isQuiz: true,
+                        image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1200"
+                    }
+                }
+            },
+            tr: {
+                title: "Türkiye'de Neobank Devrimi",
+                chapters: "Modüller",
+                viewSite: "Resmi Siteyi Ziyaret Et",
+                playerTitle: "AI Sesli Rehber",
+                playing: "Okunuyor...",
+                paused: "Durduruldu",
+                speed: "Hız",
+                volume: "Ses",
+                startPrompt: "Deneyimi Başlatmak İçin Tıklayın",
+                designerInfo: "Faramarz Kowsari tarafından tasarlandı",
+                contact: "İletişim",
+                books: "Kitaplar",
+                quizTitle: "Bilgi Değerlendirme",
+                glossaryTitle: "FinTek Sözlüğü",
+                chartsTitle: "Büyüme İstatistikleri",
+                score: "Skorunuz",
+                reset: "Testi Sıfırla",
+                feeTable: {
+                    feature: "Özellik",
+                    neobank: "Neobankalar",
+                    traditional: "Geleneksel Bankalar",
+                    eft: "EFT / FAST Transferi",
+                    accountFee: "Hesap İşletim Ücreti",
+                    cardFee: "Yıllık Kart Ücreti",
+                    free: "Daima Ücretsiz",
+                    variable: "Değişken / Yüksek"
+                },
+                sim: {
+                    bankName: "Istanbul Futures",
+                    tagline: "Yeni Nesil Neobank Simülatörü",
+                    openAccount: "Hesap Aç",
+                    existingUser: "Giriş Yap",
+                    regTitle: "Hesap Oluştur",
+                    regSub: "Bilgilerinizi eksiksiz giriniz",
+                    fullName: "Ad Soyad",
+                    idNumber: "T.C. Kimlik",
+                    password: "Şifre",
+                    next: "Sonraki Adım",
+                    kycTitle: "Biyometrik KYC",
+                    kycSub: "Kimlik kartınızı kameraya tutun",
+                    scanning: "Taranıyor...",
+                    complete: "Tamamla",
+                    verifiedMsg: "Hesap aktifleştirildi!",
+                    hi: "Merhaba",
+                    totalBalance: "Toplam Bakiye",
+                    transfer: "Transfer",
+                    deposit: "Yatır",
+                    withdraw: "Para Çek",
+                    invest: "Yatırım",
+                    loan: "Kredi",
+                    loanBanner: "Anında Kredi",
+                    loanSub: "50.000 TL'ye kadar",
+                    recentActivity: "Son İşlemler",
+                    noTx: "İşlem yok",
+                    settings: "Ayarlar",
+                    notifications: "Bildirimler",
+                    security: "Güvenlik",
+                    logout: "Çıkış",
+                    loanApproved: "Kredi Hesaba Geçti!",
+                    minInvest: "En az 1.000 TL",
+                    investSuccess: "%22 Getiri Aktif",
+                    iban: "IBAN",
+                    amount: "Tutar (TL)",
+                    confirmSend: "Onayla",
+                    lowBalance: "Bakiye yetersiz",
+                    sentSuccess: "Başarılı",
+                    qrWithdraw: "QR Çekim",
+                    qrSub: "ATM QR kodunu tara",
+                    back: "Geri"
+                },
+                sections: {
+                    intro: {
+                        title: "Giriş",
+                        content: "Neobankalar fiziksel شوبه‌سی اولمایان کوروملاردیر. تورکیه‌ده دوشوک مالییت و اوستون تجروبه‌یه فوکوسلانیرلار.",
+                        image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    simulation: {
+                        title: "Canlı Simülatör",
+                        content: "KYC, transfer, kredi ve yatırım için etkileşimli simülasyon.",
+                        isSimulation: true,
+                        image: "https://images.unsplash.com/photo-1550565118-3a14e8d0386f?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    stats: {
+                        title: "Pazar İstatistikleri",
+                        content: "Türkiye'deki dijital bankacılık kullanıcılarının büyüme analizi (2018-2024).",
+                        isChart: true,
+                        image: "https://images.unsplash.com/photo-1551288049-bbda0231f67e?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    fees: {
+                        title: "Ücret Karşılaştırması",
+                        content: "Masrafsız yapıların geleneksel maliyetlerle analizi.",
+                        isTable: true,
+                        image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    glossary: {
+                        title: "FinTek Sözlüğü",
+                        content: "Türkiye FinTek ekosistemini anlamak için anahtar terimler.",
+                        isGlossary: true,
+                        image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1200"
+                    },
+                    quiz: {
+                        title: "Final Testi",
+                        content: "Düzenlemeler ve pazar dinamikleri hakkındaki bilginizi test edin.",
+                        isQuiz: true,
+                        image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1200"
+                    }
+                }
+            }
+        };
+
+        const glossaryData = [
+            { term: "PSD2", def: "Payment Services Directive 2 - Open banking regulation." },
+            { term: "BaaS", def: "Banking as a Service - Licensed banks sharing their infra via API." },
+            { term: "BDDK", def: "Banking Regulation and Supervision Agency of Turkey." },
+            { term: "KYC", def: "Know Your Customer - Identity verification process." },
+            { term: "FinTech", def: "Financial Technology - Disruptive financial services." },
+            { term: "Digital Bank", def: "Full branchless bank licensed under 2021 regulation." }
+        ];
+
+        const quizQuestions = [
+            { q: "Which agency regulates Digital Banks in Turkey?", a: ["BDDK", "TCMB", "SPK"], correct: 0 },
+            { q: "In which year did BDDK release the Digital Banking Regulation?", a: ["2018", "2021", "2023"], correct: 1 },
+            { q: "What is the primary feature of a Neobank?", a: ["Physical branch network", "Cash only focus", "Branchless operations"], correct: 2 }
+        ];
+
+        const NeobankSimulation = ({ lang, notify, isDark }) => {
+            const t = translations[lang].sim;
+            const [screen, setScreen] = React.useState('welcome');
+            const [user, setUser] = React.useState({ name: '', balance: 0, transactions: [], investments: [] });
+            
+            const addTx = (type, amount, desc) => {
+                const tx = { id: Date.now(), type, amount, desc, time: new Date().toLocaleTimeString() };
+                setUser(p => ({ ...p, balance: type === 'credit' ? p.balance + amount : p.balance - amount, transactions: [tx, ...p.transactions] }));
+            };
+
+            const renderScreen = () => {
+                switch(screen) {
+                    case 'welcome': return (
+                        <div className="h-full bg-slate-950 text-white p-8 flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl rotate-6">
+                                <Icon name="trending-up" size={32}/>
+                            </div>
+                            <h3 className="text-xl font-black mb-1">{t.bankName}</h3>
+                            <p className="text-indigo-400 text-[8px] mb-10 uppercase tracking-widest">{t.tagline}</p>
+                            <button onClick={() => setScreen('register')} className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black shadow-lg mb-3 hover:scale-105 transition-transform">{t.openAccount}</button>
+                            <button className="text-[10px] text-slate-500 font-bold">{t.existingUser}</button>
+                        </div>
+                    );
+                    case 'register': return (
+                        <div className="h-full bg-white p-6 space-y-6 flex flex-col">
+                            <button onClick={() => setScreen('welcome')} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-lg text-slate-500"><Icon name="chevron-left" size={20} className="rotate-180"/></button>
+                            <h3 className="text-xl font-black text-slate-800">{t.regTitle}</h3>
+                            <input type="text" placeholder={t.fullName} className="w-full p-3 bg-slate-50 rounded-xl outline-indigo-500 text-slate-800 border-none" onChange={e => setUser({...user, name: e.target.value})}/>
+                            <button onClick={() => setScreen('kyc')} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold mt-auto shadow-xl">{t.next}</button>
+                        </div>
+                    );
+                    case 'kyc': return (
+                        <div className="h-full bg-slate-900 text-white p-8 flex flex-col items-center justify-center text-center space-y-6">
+                            <Icon name="fingerprint" size={50} className="text-indigo-400 animate-pulse" />
+                            <h3 className="text-xl font-bold">{t.kycTitle}</h3>
+                            <div className="w-full h-32 border-2 border-dashed border-indigo-500/30 rounded-3xl flex items-center justify-center bg-indigo-500/5 text-[10px] text-indigo-300">SCANNING...</div>
+                            <button onClick={() => { setUser({...user, isVerified: true}); setScreen('dashboard'); notify(t.verifiedMsg); }} className="w-full py-4 bg-indigo-500 rounded-xl font-bold">{t.complete}</button>
+                        </div>
+                    );
+                    case 'dashboard': return (
+                        <div className="h-full bg-slate-50 overflow-y-auto pb-16">
+                            <div className="bg-indigo-600 p-6 rounded-b-[2rem] text-white shadow-lg space-y-6">
+                                <div className="flex justify-between items-center"><span className="text-xs font-bold">{t.hi}, {user.name}</span><Icon name="settings" size={18} className="opacity-50"/></div>
+                                <div className="space-y-1"><p className="text-[10px] text-indigo-200 uppercase font-black">{t.totalBalance}</p><h4 className="text-2xl font-black">{user.balance.toLocaleString()} <span className="text-sm">TL</span></h4></div>
+                                <div className="grid grid-cols-4 gap-2 text-white">
+                                    <button onClick={() => { addTx('credit', 2500, 'Deposit'); notify("2,500 TL Added!"); }} className="p-3 bg-white/10 rounded-xl flex justify-center hover:bg-white/20"><Icon name="arrow-down-circle" size={18}/></button>
+                                    <button onClick={() => setScreen('loan')} className="p-3 bg-white/10 rounded-xl flex justify-center hover:bg-white/20"><Icon name="banknote" size={18}/></button>
+                                    <button onClick={() => setScreen('invest')} className="p-3 bg-white/10 rounded-xl flex justify-center hover:bg-white/20"><Icon name="trending-up" size={18}/></button>
+                                    <button onClick={() => setScreen('welcome')} className="p-3 bg-white/10 rounded-xl flex justify-center hover:bg-white/20"><Icon name="log-out" size={18}/></button>
+                                </div>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {user.transactions.length === 0 ? <div className="text-center py-10 opacity-30 text-[10px] font-bold uppercase">{t.noTx}</div> : 
+                                user.transactions.map(t => (
+                                    <div key={t.id} className="bg-white p-3 rounded-xl flex justify-between items-center border border-slate-50 shadow-sm animate-in">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`p-1.5 rounded-lg ${t.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                <Icon name={t.type === 'credit' ? 'plus' : 'send'} size={14}/>
+                                            </div>
+                                            <div><p className="text-[10px] font-bold text-slate-700">{t.desc}</p></div>
+                                        </div>
+                                        <span className={`text-[10px] font-black ${t.type === 'credit' ? 'text-emerald-600' : 'text-slate-800'}`}>{t.amount}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                    case 'loan': return (
+                        <div className="h-full bg-white p-8 flex flex-col items-center justify-center text-center space-y-6">
+                            <Icon name="banknote" size={50} className="text-indigo-600" />
+                            <h3 className="text-xl font-bold">Loan Request</h3>
+                            <p className="text-[10px] text-slate-400 px-4 leading-relaxed">Instant 50,000 TL disbursement based on your current simulator profile.</p>
+                            <button onClick={() => { addTx('credit', 50000, 'Loan Approved'); setScreen('dashboard'); notify("50,000 TL Disbursed!"); }} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg">Approve 50,000 TL</button>
+                            <button onClick={() => setScreen('dashboard')} className="text-xs text-slate-400 font-bold">Cancel</button>
+                        </div>
+                    );
+                    case 'invest': return (
+                        <div className="h-full bg-slate-950 text-white p-8 flex flex-col items-center justify-center text-center space-y-6">
+                            <Icon name="pie-chart" size={40} className="text-indigo-500" />
+                            <h3 className="text-xl font-black">22% APY Growth</h3>
+                            <p className="text-[10px] text-indigo-300 px-6">Your funds will grow with a compounded daily rate.</p>
+                            <button onClick={() => { if(user.balance < 1000) return notify("Min 1000 TL needed"); addTx('debit', 1000, 'Investment'); setScreen('dashboard'); notify("Investment Active"); }} className="w-full py-4 bg-white text-indigo-900 rounded-xl font-black">Invest 1,000 TL</button>
+                        </div>
+                    );
+                    default: return null;
+                }
+            };
+
+            return (
+                <div className="w-full h-full flex items-center justify-center p-2" dir="ltr">
+                    <div className="w-[280px] h-[540px] bg-slate-900 rounded-[2.5rem] border-[6px] border-slate-900 shadow-2xl relative overflow-hidden ring-4 ring-indigo-500/10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-b-xl z-50"></div>
+                        {renderScreen()}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = React.useState('en');
+            const [activeTab, setActiveTab] = React.useState('intro');
+            const [sidebarOpen, setSidebarOpen] = React.useState(false);
+            const [hasInteracted, setHasInteracted] = React.useState(false);
+            const [isPlaying, setIsPlaying] = React.useState(false);
+            const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+            const [volume, setVolume] = React.useState(1);
+            const [isDark, setIsDark] = React.useState(false);
+            const [message, setMessage] = React.useState(null);
+            
+            // Quiz State
+            const [quizStep, setQuizStep] = React.useState(0);
+            const [quizScore, setQuizScore] = React.useState(0);
+            const [showResult, setShowResult] = React.useState(false);
+
+            const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+            const t = translations[lang];
+            const navItems = Object.keys(t.sections);
+
+            const notify = (msg) => { setMessage(msg); setTimeout(() => setMessage(null), 3000); };
+
+            const speakText = () => {
+                if (!synth || !hasInteracted) return;
+                synth.cancel(); 
+                const text = `${t.sections[activeTab].title}. ${t.sections[activeTab].content}`;
+                const u = new SpeechSynthesisUtterance(text);
+                const voices = synth.getVoices();
+                const target = lang === 'en' ? 'en-US' : 'tr-TR';
+                const v = voices.find(v => v.lang.includes(target) && (v.name.includes('Google') || v.name.includes('Natural'))) || voices.find(v => v.lang.includes(target)) || voices[0];
+                if (v) u.voice = v;
+                u.rate = playbackSpeed; u.volume = volume;
+                u.onend = () => setIsPlaying(false); u.onstart = () => setIsPlaying(true);
+                setTimeout(() => synth.speak(u), 50);
+            };
+
+            React.useEffect(() => { if (hasInteracted) { synth.cancel(); setTimeout(speakText, 600); } }, [activeTab, lang, hasInteracted]);
+
+            return (
+                <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`} onClick={() => { if(!hasInteracted) setHasInteracted(true); }}>
+                    
+                    {!hasInteracted && (
+                        <div className="fixed inset-0 z-[100] bg-indigo-900/60 backdrop-blur-md flex items-center justify-center p-6 text-center">
+                            <button className="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-6 animate-in">
+                                <div className="w-20 h-20 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl animate-bounce"><Icon name="headphones" size={40} /></div>
+                                <h2 className="text-xl font-black text-slate-800 tracking-tight">{t.startPrompt}</h2>
+                            </button>
+                        </div>
+                    )}
+
+                    {message && (
+                        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] bg-slate-900 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 animate-in">
+                            <Icon name="check-circle-2" size={20} className="text-emerald-400"/><span className="text-sm font-black uppercase tracking-tight">{message}</span>
+                        </div>
+                    )}
+
+                    {/* Sidebar */}
+                    <div className={`fixed inset-y-0 left-0 z-50 w-72 border-r transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform lg:relative lg:translate-x-0 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                        <div className="p-6 border-b flex items-center justify-between border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2 font-black text-xl text-indigo-600"><Icon name="book-open" size={28} /><span>NEO-TURKEY</span></div>
+                            <button onClick={() => setSidebarOpen(false)} className="lg:hidden"><Icon name="x" size={24} /></button>
+                        </div>
+                        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-80px)]">
+                            {navItems.map((key) => (
+                                <button key={key} onClick={() => { setActiveTab(key); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-4 rounded-[1.5rem] transition-all ${activeTab === key ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                                    <span className="text-xs uppercase font-black">{t.sections[key].title}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <header className={`h-16 border-b flex items-center justify-between px-6 shrink-0 z-30 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2"><Icon name="menu" size={24} /></button>
+                                <div className="hidden md:block font-bold text-slate-400 text-[10px] uppercase tracking-[0.2em]">{t.title}</div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setIsDark(!isDark)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all">
+                                    {isDark ? <Icon name="sun" size={20} className="text-amber-400"/> : <Icon name="moon" size={20} className="text-indigo-600"/>}
+                                </button>
+                                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
+                                    <button onClick={() => setLang('en')} className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all ${lang === 'en' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-400'}`}>EN</button>
+                                    <button onClick={() => setLang('tr')} className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all ${lang === 'tr' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-400'}`}>TR</button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+                            <div className="max-w-6xl mx-auto space-y-8">
+                                <div className={`rounded-[2rem] border-2 shadow-xl p-5 flex flex-col md:flex-row items-center gap-6 sticky top-0 z-40 backdrop-blur-md ${isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white/95 border-indigo-100'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => { if(isPlaying) synth.pause(); else synth.resume(); setIsPlaying(!isPlaying); }} className="w-14 h-14 flex items-center justify-center bg-indigo-600 text-white rounded-[1.25rem] shadow-lg hover:scale-105 transition-transform">
+                                            {isPlaying ? <Icon name="pause" size={28} fill="currentColor" /> : <Icon name="play" size={28} className="ml-1" fill="currentColor" />}
+                                        </button>
+                                        <button onClick={speakText} className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-slate-200 transition-colors"><Icon name="rotate-ccw" size={22} /></button>
+                                    </div>
+                                    <div className="flex-1 grid grid-cols-2 gap-6 w-full">
+                                        <div className="space-y-2"><div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest"><span>{t.speed}</span><span>{playbackSpeed}x</span></div><input type="range" min="0.5" max="2" step="0.1" value={playbackSpeed} onChange={e => setPlaybackSpeed(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none accent-indigo-600 cursor-pointer"/></div>
+                                        <div className="space-y-2"><div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest"><span>{t.volume}</span><span>{Math.round(volume * 100)}%</span></div><input type="range" min="0" max="1" step="0.1" value={volume} onChange={e => setVolume(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none accent-indigo-600 cursor-pointer"/></div>
+                                    </div>
+                                </div>
+
+                                <div className="relative h-64 md:h-96 rounded-[3.5rem] overflow-hidden shadow-2xl bg-slate-200 group border-4 border-white dark:border-slate-800">
+                                    <img src={t.sections[activeTab].image} alt="Header" className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end p-10 md:p-14 text-white">
+                                        <h2 className="text-3xl md:text-7xl font-black tracking-tighter leading-none animate-in">{t.sections[activeTab].title}</h2>
+                                    </div>
+                                </div>
+
+                                <div className="grid lg:grid-cols-5 gap-8 pb-10">
+                                    <div className="lg:col-span-2 space-y-6">
+                                        <div className={`p-10 rounded-[3rem] border shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                                            <p className="text-xl font-medium leading-relaxed opacity-80">{t.sections[activeTab].content}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`lg:col-span-3 min-h-[600px] rounded-[3.5rem] border-8 shadow-2xl overflow-hidden relative ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-white'}`}>
+                                        {t.sections[activeTab].isSimulation ? (
+                                            <NeobankSimulation lang={lang} notify={notify} isDark={isDark} />
+                                        ) : t.sections[activeTab].isTable ? (
+                                            <div className="p-10 animate-in">
+                                                <h4 className="text-3xl font-black mb-10 tracking-tight">Fee Transparency</h4>
+                                                <table className="w-full border-separate border-spacing-y-4 text-xs font-bold">
+                                                    <thead><tr className="text-slate-400 uppercase tracking-widest text-[10px] text-left"><th>{t.feeTable.feature}</th><th>{t.feeTable.neobank}</th><th>{t.feeTable.traditional}</th></tr></thead>
+                                                    <tbody>
+                                                        {[ { n: t.feeTable.eft, neo: "Free", t: "15 TL" }, { n: t.feeTable.cardFee, neo: "Free", t: "400 TL" }].map((r, i) => (
+                                                            <tr key={i}><td className={`py-6 pl-8 rounded-l-2xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>{r.n}</td><td className={`py-6 px-4 font-black text-emerald-500 ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>{r.neo}</td><td className={`py-6 pr-8 rounded-r-2xl text-slate-400 ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>{r.t}</td></tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : t.sections[activeTab].isChart ? (
+                                            <div className="p-10 h-full flex flex-col justify-center animate-in">
+                                                <h4 className="text-3xl font-black mb-12">Adoption Growth (Millions)</h4>
+                                                <div className="flex items-end gap-3 h-64 px-4">
+                                                    {[{y:'18',v:'32%'}, {y:'20',v:'54%'}, {y:'22',v:'78%'}, {y:'24',v:'95%'}].map(b => (
+                                                        <div key={b.y} className="flex-1 flex flex-col items-center gap-2 group">
+                                                            <div className="w-full bg-indigo-600 rounded-t-xl transition-all group-hover:bg-emerald-500" style={{ height: b.v }}></div>
+                                                            <div className="text-[10px] font-black text-slate-400">20{b.y}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : t.sections[activeTab].isGlossary ? (
+                                            <div className="p-10 grid gap-4 animate-in">
+                                                {glossaryData.map(item => (
+                                                    <div key={item.term} className={`p-5 rounded-3xl border transition-transform hover:scale-[1.02] ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                                                        <h6 className="font-black text-indigo-500 mb-1">{item.term}</h6>
+                                                        <p className="text-xs opacity-60 font-medium">{item.def}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : t.sections[activeTab].isQuiz ? (
+                                            <div className="p-10 h-full flex flex-col items-center justify-center text-center animate-in">
+                                                {!showResult ? (
+                                                    <div className="space-y-8 w-full max-w-md">
+                                                        <h5 className="text-2xl font-black">{quizQuestions[quizStep].q}</h5>
+                                                        <div className="space-y-3">
+                                                            {quizQuestions[quizStep].a.map((opt, i) => (
+                                                                <button key={i} onClick={() => { if(i === quizQuestions[quizStep].correct) setQuizScore(quizScore + 1); if(quizStep < quizQuestions.length - 1) setQuizStep(quizStep + 1); else setShowResult(true); }} className={`w-full py-4 rounded-3xl border-2 font-black transition-all hover:border-indigo-500 active:scale-95 ${isDark ? 'border-slate-800 bg-slate-800 text-slate-100' : 'border-slate-100 bg-slate-50 text-slate-600'}`}>{opt}</button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-6">
+                                                        <h4 className="text-4xl font-black">{t.score}: {Math.round((quizScore/quizQuestions.length)*100)}%</h4>
+                                                        <button onClick={() => { setQuizStep(0); setQuizScore(0); setShowResult(false); }} className="px-10 py-4 bg-indigo-600 text-white rounded-3xl font-black hover:bg-indigo-700 shadow-lg">Reset</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="p-16 flex flex-col items-center justify-center text-center space-y-6"><Icon name="trending-up" size={64} className="text-indigo-600 animate-pulse" /><h4 className="text-4xl font-black tracking-tighter">Academic Modules</h4></div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+
+                        <footer className={`border-t py-4 px-8 shrink-0 z-30 transition-colors ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <div className="flex items-center gap-3">
+                                    <Icon name="linkedin" size={14} className="text-indigo-500" />
+                                    <a href="https://linkedin.com/in/faramarzkowsari" target="_blank" className="hover:text-indigo-600 transition-colors">Faramarz Kowsari</a>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <a href="mailto:info@faramarzkowsari.com" className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Icon name="mail" size={14} className="text-indigo-400" /> info@faramarzkowsari.com</a>
+                                    <a href="https://play.google.com/store/search?q=Faramarz%20Kowsari&c=books" target="_blank" className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Icon name="library" size={14} className="text-indigo-400" /> Books</a>
+                                </div>
+                                <div className="hidden lg:block opacity-40">Beykoz University • 2024</div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
