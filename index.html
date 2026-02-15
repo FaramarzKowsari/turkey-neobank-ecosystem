@@ -16,7 +16,7 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
@@ -32,8 +32,9 @@
             100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
         }
 
+        /* Fixed Chart Animation */
         .chart-bar-grow {
-            transition: height 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            transition: height 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
     </style>
 </head>
@@ -42,48 +43,58 @@
 
     <script type="text/babel">
         /**
-         * Ultra-stable Icon Component
-         * Fixed destructuring and undefined tag errors (React Error #130)
+         * Robust Icon Component
+         * Prevents React Error #130 and handles loading delays
          */
         const Icon = ({ name, size = 24, className = "", ...props }) => {
-            const [iconData, setIconData] = React.useState(null);
+            const [iconConfig, setIconConfig] = React.useState(null);
             const toPascalCase = (str) => str ? str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('') : "";
 
             React.useEffect(() => {
-                const search = () => {
+                const fetchIcon = () => {
                     if (window.lucide && window.lucide.icons) {
-                        const data = window.lucide.icons[toPascalCase(name)] || window.lucide.icons[name];
-                        if (data) { setIconData(data); return true; }
+                        const pName = toPascalCase(name);
+                        const data = window.lucide.icons[pName] || window.lucide.icons[name];
+                        if (data && Array.isArray(data) && data[2]) {
+                            setIconConfig(data);
+                            return true;
+                        }
                     }
                     return false;
                 };
-                if (!search()) {
-                    const t = setInterval(() => { if (search()) clearInterval(t); }, 100);
-                    return () => clearInterval(t);
+
+                if (!fetchIcon()) {
+                    const timer = setInterval(() => { if (fetchIcon()) clearInterval(timer); }, 100);
+                    return () => clearInterval(timer);
                 }
             }, [name]);
 
-            if (!iconData || !iconData[2]) return <span style={{ width: size, height: size, display: 'inline-block' }} className={className}></span>;
+            if (!iconConfig) return <span style={{ width: size, height: size, display: 'inline-block' }} className={className}></span>;
+
+            const children = iconConfig[2];
             return (
-                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide-icon ${className}`} {...props}>
-                    {iconData[2].map((child, i) => child && typeof child[0] === 'string' ? React.createElement(child[0], { ...child[1], key: i }) : null)}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`lucide-icon ${className}`}
+                    {...props}
+                >
+                    {children.map((child, i) => {
+                        if (child && typeof child[0] === 'string') {
+                            return React.createElement(child[0], { ...child[1], key: i });
+                        }
+                        return null;
+                    })}
                 </svg>
             );
         };
-
-        const glossaryData = [
-            { term: "PSD2", def: "Payment Services Directive 2 - Open banking regulation allowing third-party providers access to financial data." },
-            { term: "BaaS", def: "Banking as a Service - Licensed banks sharing their infra via secure APIs to third-party entities." },
-            { term: "BDDK", def: "Banking Regulation and Supervision Agency of Turkey - Primary oversight body." },
-            { term: "Digital Lira", def: "CBDC project by Central Bank of Turkey (TCMB) for sovereign digital currency." },
-            { term: "KYC", def: "Know Your Customer - The mandatory process of identity verification for clients." }
-        ];
-
-        const quizQuestions = [
-            { q: "Which agency regulates Digital Banks in Turkey?", a: ["BDDK", "TCMB", "SPK"], correct: 0 },
-            { q: "What is the primary feature of a Neobank?", a: ["Physical branches", "Branchless operations", "Cash only focus"], correct: 1 },
-            { q: "In which year did the BDDK Digital Banking Regulation launch?", a: ["2018", "2021", "2023"], correct: 1 }
-        ];
 
         const translations = {
             en: {
@@ -104,7 +115,7 @@
                     fees: { title: "4. Cost Analysis", content: "Comparative study between Neobank zero-fee models and legacy banking overhead costs.", isTable: true, image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200" },
                     digitalLira: { title: "5. Digital Lira", content: "TCMB's Digital Lira project aims to redefine sovereign currency and interoperability via blockchain.", image: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?auto=format&fit=crop&q=80&w=1200" },
                     enpara: { title: "6. Case: Enpara", content: "Enpara.com proved that customer satisfaction peaks when fees are eliminated and UX is prioritized.", url: "https://www.enpara.com", image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=1200" },
-                    glossary: { title: "7. FinTech Glossary", content: "Academic reference for key terminology within the financial technology sector.", isGlossary: true, image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1200" },
+                    glossary: { title: "7. Glossary", content: "Academic reference for key terminology within the financial technology sector.", isGlossary: true, image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1200" },
                     quiz: { title: "8. Knowledge Quiz", content: "Validate research findings with an interactive assessment on digital banking regulations.", isQuiz: true, image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1200" }
                 }
             },
@@ -121,7 +132,7 @@
                 },
                 sections: {
                     intro: { title: "1. Giriş", content: "Neobankalar %100 dijital kurumlardır. Türkiye'de düşük maliyet ve üstün kullanıcı deneyimine odaklanırlar.", image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1200" },
-                    simulation: { title: "2. Canlı Simülatör", content: "Istanbul Futures arayüzünü test edin. KYC süreçlerini و anlık işlem simülasyonunu deneyimleyin.", isSimulation: true, image: "https://images.unsplash.com/photo-1550565118-3a14e8d0386f?auto=format&fit=crop&q=80&w=1200" },
+                    simulation: { title: "2. Canlı Simülatör", content: "Istanbul Futures arayüzünü test edin. KYC processes و transaction simulation.", isSimulation: true, image: "https://images.unsplash.com/photo-1550565118-3a14e8d0386f?auto=format&fit=crop&q=80&w=1200" },
                     stats: { title: "3. Büyüme Verileri", content: "Türkiye'deki dijital kullanıcı büyümesinin görselleştirilmesi (2018-2024).", isChart: true, image: "https://images.unsplash.com/photo-1551288049-bbda0231f67e?auto=format&fit=crop&q=80&w=1200" },
                     fees: { title: "4. Maliyet Analizi", content: "Masrafsız yapıların geleneksel bankacılık operasyon maliyetleri ile karşılaştırmalı analizi.", isTable: true, image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200" },
                     digitalLira: { title: "5. Dijital Lira", content: "TCMB'nin Dijital Lira projesi, egemen para birimi ile neobankacılık entegrasyonunu hedefliyor.", image: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?auto=format&fit=crop&q=80&w=1200" },
@@ -131,6 +142,14 @@
                 }
             }
         };
+
+        const glossaryData = [
+            { term: "PSD2", def: "Payment Services Directive 2 - Open banking standard allowing third-party integration." },
+            { term: "BaaS", def: "Banking as a Service - Infrastructure sharing through digital APIs." },
+            { term: "BDDK", def: "Banking Regulation and Supervision Agency of Turkey - Oversight body." },
+            { term: "KYC", def: "Know Your Customer - Identity verification required by AML laws." },
+            { term: "Digital Bank", def: "A fully branchless bank licensed under the 2021 Turkish regulations." }
+        ];
 
         const NeobankSimulation = ({ lang, notify }) => {
             const t = translations[lang];
@@ -143,6 +162,7 @@
 
             const handleTransfer = () => {
                 if(!iban.startsWith('TR') || !amt) return notify("Check IBAN/Amount");
+                if(parseFloat(amt) > balance) return notify("Insufficient Funds");
                 setBalance(balance - parseFloat(amt));
                 notify(`Sent ${amt} TL to ${iban}`);
                 setStep('dash'); setIban(''); setAmt('');
@@ -154,7 +174,7 @@
                         <button onClick={() => setStep(back)} className="p-1 hover:bg-slate-100 rounded-full"><Icon name="chevron-left" size={20}/></button>
                         <span className="text-[10px] font-black uppercase tracking-widest">{title}</span>
                     </div>
-                    <button onClick={() => setShowHelp(true)} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-full"><Icon name="help-circle" size={16}/></button>
+                    <button onClick={() => setShowHelp(true)} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-full transition-colors hover:bg-indigo-100"><Icon name="help-circle" size={16}/></button>
                 </div>
             );
 
@@ -162,15 +182,13 @@
                 <div className="w-full h-full flex items-center justify-center p-4">
                     <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] border-[8px] border-slate-900 relative overflow-hidden shadow-2xl">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-b-xl z-50"></div>
-                        
                         {step === 'start' && (
                             <div className="h-full flex flex-col items-center justify-center p-8 bg-slate-950 text-white text-center animate-in">
                                 <Icon name="trending-up" size={48} className="text-indigo-400 mb-6" />
                                 <h3 className="text-xl font-black mb-1 uppercase tracking-tighter">Istanbul Futures</h3>
-                                <button onClick={() => setStep('reg')} className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black mt-8 text-xs hover:scale-105 active:scale-95 transition-all">OPEN ACCOUNT</button>
+                                <button onClick={() => setStep('reg')} className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black mt-8 text-xs hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/10">OPEN ACCOUNT</button>
                             </div>
                         )}
-
                         {step === 'reg' && (
                             <div className="h-full bg-white p-6 space-y-8 flex flex-col text-slate-800 animate-in">
                                 {header("IDENTITY", "start")}
@@ -179,7 +197,6 @@
                                 <button onClick={() => setStep('kyc')} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black mt-auto uppercase text-xs shadow-lg">CONTINUE</button>
                             </div>
                         )}
-
                         {step === 'kyc' && (
                             <div className="h-full bg-slate-900 text-white p-8 flex flex-col items-center justify-center text-center space-y-8 animate-in">
                                 <Icon name="fingerprint" size={60} className="text-indigo-400 animate-pulse" />
@@ -188,7 +205,6 @@
                                 <button onClick={() => { setStep('dash'); notify(`Welcome ${name}`); }} className="w-full py-4 bg-indigo-500 rounded-xl font-black uppercase text-xs shadow-lg">ACTIVATE</button>
                             </div>
                         )}
-
                         {step === 'dash' && (
                             <div className="h-full bg-slate-50 flex flex-col pb-16 text-slate-800 animate-in">
                                 <div className="bg-indigo-600 p-6 rounded-b-[2.5rem] text-white space-y-6 shadow-xl relative">
@@ -197,11 +213,11 @@
                                     <div className="grid grid-cols-4 gap-2">
                                         <button onClick={() => { setBalance(balance+2500); notify("2,500 TL Added"); }} className="p-3 bg-white/10 rounded-xl flex flex-col items-center gap-1 hover:bg-white/20 transition-colors"><Icon name="plus" size={18}/><span className="text-[7px] font-black uppercase">ADD</span></button>
                                         <button onClick={() => setStep('transfer')} className="p-3 bg-white/10 rounded-xl flex flex-col items-center gap-1 hover:bg-white/20 transition-colors"><Icon name="send" size={18}/><span className="text-[7px] font-black uppercase">FAST</span></button>
-                                        <button onClick={() => notify("Loans locked")} className="p-3 bg-white/10 rounded-xl flex flex-col items-center gap-1 hover:bg-white/20 transition-colors"><Icon name="banknote" size={18}/><span className="text-[7px] font-black uppercase">LOAN</span></button>
+                                        <button onClick={() => notify("Loans coming soon")} className="p-3 bg-white/10 rounded-xl flex flex-col items-center gap-1 hover:bg-white/20 transition-colors"><Icon name="banknote" size={18}/><span className="text-[7px] font-black uppercase">LOAN</span></button>
                                         <button onClick={() => setShowHelp(true)} className="p-3 bg-white/10 rounded-xl flex flex-col items-center gap-1 hover:bg-white/20 transition-colors"><Icon name="help-circle" size={18}/><span className="text-[7px] font-black uppercase">HELP</span></button>
                                     </div>
                                 </div>
-                                <div className="p-6 text-center text-slate-300 italic text-[9px] mt-auto pb-4 uppercase font-black tracking-widest leading-none">Istanbul Futures Simulator Mode</div>
+                                <div className="p-6 text-center text-slate-300 italic text-[9px] mt-auto pb-4 uppercase font-black tracking-widest leading-none">Simulation Mode Active</div>
                                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-around z-20 shadow-lg">
                                     <button onClick={() => setStep('dash')} className={`flex flex-col items-center gap-1 ${step === 'dash' ? 'text-indigo-600' : 'text-slate-300'}`}><Icon name="home" size={18}/><span className="text-[7px] font-black uppercase">{t.ui.home}</span></button>
                                     <button onClick={() => setStep('transfer')} className={`flex flex-col items-center gap-1 ${step === 'transfer' ? 'text-indigo-600' : 'text-slate-300'}`}><Icon name="send" size={18}/><span className="text-[7px] font-black uppercase">{t.ui.send}</span></button>
@@ -209,7 +225,6 @@
                                 </div>
                             </div>
                         )}
-
                         {step === 'transfer' && (
                             <div className="h-full bg-white flex flex-col pb-16 text-slate-800 animate-in">
                                 {header("FAST TRANSFER")}
@@ -220,7 +235,6 @@
                                 </div>
                             </div>
                         )}
-
                         {showHelp && (
                             <div className="absolute inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setShowHelp(false)}>
                                 <div className="bg-white rounded-[2.5rem] p-8 text-slate-800 space-y-4 shadow-2xl animate-in" onClick={e => e.stopPropagation()}>
@@ -251,7 +265,8 @@
             const [volume, setVolume] = React.useState(1);
             const [isDark, setIsDark] = React.useState(false);
             const [message, setMessage] = React.useState(null);
-            const [chartKey, setChartKey] = React.useState(0); // For chart animation reset
+            const [chartKey, setChartKey] = React.useState(0);
+            const [animateChart, setAnimateChart] = React.useState(false);
             
             const [quizStep, setQuizStep] = React.useState(0);
             const [quizScore, setQuizScore] = React.useState(0);
@@ -266,24 +281,32 @@
             const speakText = () => {
                 if (!synth || !hasInteracted) return;
                 synth.cancel(); 
-                const u = new SpeechSynthesisUtterance(`${t.sections[activeTab].title}. ${t.sections[activeTab].content}`);
-                u.rate = playbackSpeed; u.volume = volume;
-                u.onend = () => setIsPlaying(false); u.onstart = () => setIsPlaying(true);
+                const text = `${t.sections[activeTab].title}. ${t.sections[activeTab].content}`;
+                const u = new SpeechSynthesisUtterance(text);
                 const voices = synth.getVoices();
                 const target = lang === 'en' ? 'en-US' : 'tr-TR';
                 const v = voices.find(v => v.lang.includes(target) && (v.name.includes('Google') || v.name.includes('Natural'))) || voices.find(v => v.lang.includes(target)) || voices[0];
                 if (v) u.voice = v;
+                u.rate = playbackSpeed; u.volume = volume;
+                u.onend = () => setIsPlaying(false); u.onstart = () => setIsPlaying(true);
                 setTimeout(() => synth.speak(u), 50);
             };
 
             React.useEffect(() => { if (isPlaying) speakText(); }, [playbackSpeed, volume]);
             React.useEffect(() => { if (hasInteracted) { synth.cancel(); setTimeout(speakText, 600); } }, [activeTab, lang, hasInteracted]);
-            React.useEffect(() => { if (activeTab === 'stats') setChartKey(prev => prev + 1); }, [activeTab]);
+            
+            // Fix Chart: Trigger animation after section switch
+            React.useEffect(() => {
+                if (activeTab === 'stats') {
+                    setAnimateChart(false);
+                    setChartKey(prev => prev + 1);
+                    setTimeout(() => setAnimateChart(true), 200);
+                }
+            }, [activeTab]);
 
             return (
                 <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`} onClick={() => { if(!hasInteracted) setHasInteracted(true); }}>
                     
-                    {/* Startup Entry */}
                     {!hasInteracted && (
                         <div className="fixed inset-0 z-[100] bg-indigo-950 flex items-center justify-center p-6 text-center">
                             <button className="bg-white p-12 rounded-[4rem] shadow-2xl flex flex-col items-center gap-8 animate-in border-[12px] border-white active:scale-95 transition-transform">
@@ -295,17 +318,17 @@
                     )}
 
                     {message && (
-                        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[110] bg-slate-900 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 animate-in border border-white/10">
+                        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[110] bg-slate-900 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 animate-in">
                             <Icon name="check-circle-2" size={24} className="text-emerald-400"/><span className="text-xs font-black uppercase tracking-widest leading-none">{message}</span>
                         </div>
                     )}
 
-                    {/* Left Navigation */}
-                    <div className={`fixed inset-y-0 left-0 z-50 w-72 border-r transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform lg:relative lg:translate-x-0 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-xl lg:shadow-none'}`}>
+                    {/* Sidebar */}
+                    <div className={`fixed inset-y-0 left-0 z-50 w-80 border-r transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform lg:relative lg:translate-x-0 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-xl lg:shadow-none'}`}>
                         <div className="p-8 border-b flex items-center justify-between border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-3 font-black text-xl text-indigo-600">
-                                <Icon name="book-open" size={28} />
-                                <span className="tracking-tighter uppercase leading-none">NEO-TURKEY</span>
+                                <Icon name="book-open" size={32} />
+                                <span className="tracking-tighter uppercase">NEO-TURKEY</span>
                             </div>
                             <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors"><Icon name="x" size={24} /></button>
                         </div>
@@ -320,18 +343,17 @@
                     </div>
 
                     <div className="flex-1 flex flex-col overflow-hidden">
-                        {/* Top App Bar */}
                         <header className={`h-20 border-b flex items-center justify-between px-8 shrink-0 z-30 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-3 bg-indigo-600 text-white rounded-2xl shadow-lg flex items-center gap-2 px-4 transition-transform active:scale-95">
-                                    <Icon name="menu" size={20} />
+                            <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
+                                <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-3 bg-indigo-600 text-white rounded-2xl shadow-lg flex items-center gap-2 px-4 transition-transform active:scale-95 shadow-indigo-500/20">
+                                    <Icon name="menu" size={24} />
                                     <span className="text-[10px] font-black uppercase leading-none">{t.ui.menu}</span>
                                 </button>
                                 <div className="hidden md:block font-bold text-slate-400 text-[10px] uppercase tracking-[0.3em] leading-none">{t.title}</div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <button onClick={() => setIsDark(!isDark)} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-sm border border-slate-200 dark:border-slate-700">
-                                    {isDark ? <Icon name="sun" size={20} className="text-amber-400"/> : <Icon name="moon" size={20} className="text-indigo-600"/>}
+                                    <Icon name={isDark ? "sun" : "moon"} size={20} className={isDark ? "text-amber-400" : "text-indigo-600"}/>
                                 </button>
                                 <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner border border-slate-200 dark:border-slate-700">
                                     <button onClick={() => setLang('en')} className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all ${lang === 'en' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-indigo-400'}`}>EN</button>
@@ -342,12 +364,12 @@
 
                         <main className="flex-1 overflow-y-auto p-4 md:p-10">
                             <div className="max-w-6xl mx-auto space-y-8 animate-in">
-                                {/* Audio Player HUD */}
-                                <div className={`rounded-[3rem] border-2 shadow-2xl p-6 flex flex-col md:flex-row items-center gap-8 sticky top-0 z-40 backdrop-blur-xl ${isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white/95 border-indigo-50'}`}>
-                                    <div className="flex items-center gap-4 shrink-0">
-                                        <button onClick={() => { if(isPlaying) synth.pause(); else synth.resume(); setIsPlaying(!isPlaying); }} className="w-20 h-20 flex flex-col items-center justify-center bg-indigo-600 text-white rounded-[2rem] shadow-xl hover:scale-105 active:scale-95 transition-all pulse-button shrink-0">
-                                            <Icon name={isPlaying ? "pause" : "play"} size={32} />
-                                            <span className="text-[9px] font-black mt-1 uppercase tracking-tighter leading-none">{isPlaying ? t.ui.pause : t.ui.play}</span>
+                                {/* Fixed Player UI with Visible Labels */}
+                                <div className={`rounded-[3rem] border-2 shadow-2xl p-6 flex flex-col md:flex-row items-center gap-10 sticky top-0 z-40 backdrop-blur-xl ${isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white/95 border-indigo-50'}`}>
+                                    <div className="flex items-center gap-6 shrink-0">
+                                        <button onClick={() => { if(isPlaying) synth.pause(); else synth.resume(); setIsPlaying(!isPlaying); }} className="w-24 h-24 flex flex-col items-center justify-center bg-indigo-600 text-white rounded-[2.5rem] shadow-xl hover:scale-105 active:scale-95 transition-all pulse-button">
+                                            <Icon name={isPlaying ? "pause" : "play"} size={36} />
+                                            <span className="text-[10px] font-black mt-2 uppercase tracking-widest">{isPlaying ? t.ui.pause : t.ui.play}</span>
                                         </button>
                                         <button onClick={speakText} className="w-12 h-12 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-slate-200 transition-colors shadow-sm">
                                             <Icon name="rotate-ccw" size={20} />
@@ -355,22 +377,15 @@
                                         </button>
                                     </div>
                                     <div className="flex-1 grid grid-cols-2 gap-10 w-full">
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest"><span>{t.ui.speed}</span><span className="text-indigo-600">{playbackSpeed}x</span></div>
-                                            <input type="range" min="0.5" max="2" step="0.1" value={playbackSpeed} onChange={e => setPlaybackSpeed(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none accent-indigo-600 cursor-pointer shadow-inner"/>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest"><span>{t.ui.volume}</span><span className="text-indigo-600">{Math.round(volume * 100)}%</span></div>
-                                            <input type="range" min="0" max="1" step="0.1" value={volume} onChange={e => setVolume(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none accent-indigo-600 cursor-pointer shadow-inner"/>
-                                        </div>
+                                        <div className="space-y-3"><div className="flex justify-between text-[10px] font-black text-slate-400 uppercase"><span>{t.ui.speed}</span><span className="text-indigo-600">{playbackSpeed}x</span></div><input type="range" min="0.5" max="2" step="0.1" value={playbackSpeed} onChange={e => setPlaybackSpeed(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none accent-indigo-600 cursor-pointer shadow-inner"/></div>
+                                        <div className="space-y-3"><div className="flex justify-between text-[10px] font-black text-slate-400 uppercase"><span>{t.ui.volume}</span><span className="text-indigo-600">{Math.round(volume * 100)}%</span></div><input type="range" min="0" max="1" step="0.1" value={volume} onChange={e => setVolume(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none accent-indigo-600 cursor-pointer shadow-inner"/></div>
                                     </div>
                                 </div>
 
-                                {/* Banner View */}
-                                <div className="relative h-64 md:h-[450px] rounded-[4.5rem] overflow-hidden shadow-2xl bg-slate-200 group border-8 border-white dark:border-slate-800 animate-in">
-                                    <img src={t.sections[activeTab].image} alt="Banner" className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110" />
+                                <div className="relative h-64 md:h-[450px] rounded-[4.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border-8 border-white dark:border-slate-800 animate-in group">
+                                    <img src={t.sections[activeTab].image} alt="Banner" className="w-full h-full object-cover transition-transform duration-[3000ms] group-hover:scale-110" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end p-10 md:p-14 text-white text-left">
-                                        <h2 className="text-4xl md:text-8xl font-black tracking-tighter leading-none uppercase drop-shadow-2xl">{t.sections[activeTab].title}</h2>
+                                        <h2 className="text-4xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase drop-shadow-2xl">{t.sections[activeTab].title}</h2>
                                     </div>
                                 </div>
 
@@ -386,7 +401,7 @@
                                             <NeobankSimulation lang={lang} notify={notify} />
                                         ) : t.sections[activeTab].isTable ? (
                                             <div className="p-16 h-full flex flex-col justify-center animate-in">
-                                                <h4 className="text-4xl font-black mb-16 tracking-tighter uppercase text-slate-800 dark:text-white border-b-8 border-indigo-600 inline-block pb-4 leading-none">Transparency Study</h4>
+                                                <h4 className="text-4xl font-black mb-16 tracking-tighter uppercase border-b-8 border-indigo-600 inline-block pb-4">Efficiency Study</h4>
                                                 <table className="w-full border-separate border-spacing-y-8 text-xs font-black uppercase">
                                                     <thead><tr className="text-slate-400 tracking-[0.3em] text-[10px] text-left"><th>Metric</th><th>Neobank</th><th>Traditional</th></tr></thead>
                                                     <tbody>
@@ -397,12 +412,12 @@
                                                 </table>
                                             </div>
                                         ) : t.sections[activeTab].isChart ? (
-                                            <div className="p-16 h-full flex flex-col justify-center animate-in text-center">
-                                                <h4 className="text-4xl font-black mb-16 tracking-tighter uppercase text-slate-800 dark:text-white">Adoption Growth</h4>
-                                                <div className="flex items-end gap-5 h-96 px-10 border-b-4 border-slate-100 dark:border-slate-800" key={chartKey}>
+                                            <div className="p-16 h-full flex flex-col justify-center animate-in text-center" key={chartKey}>
+                                                <h4 className="text-4xl font-black mb-16 tracking-tighter uppercase">Adoption Growth</h4>
+                                                <div className="flex items-end gap-5 h-96 px-10 border-b-4 border-slate-100 dark:border-slate-800">
                                                     {[{y:'18',v:'32%'}, {y:'20',v:'54%'}, {y:'22',v:'78%'}, {y:'24',v:'95%'}].map(b => (
                                                         <div key={b.y} className="flex-1 flex flex-col items-center gap-6 group">
-                                                            <div className="w-full bg-indigo-600 rounded-t-[2rem] chart-bar-grow shadow-2xl relative group-hover:bg-emerald-500" style={{ height: b.v }}>
+                                                            <div className="w-full bg-indigo-600 rounded-t-[2.5rem] shadow-2xl relative transition-all chart-bar-grow group-hover:bg-emerald-500" style={{ height: animateChart ? b.v : '0%' }}>
                                                                 <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest">{b.v.replace('%','M')}</div>
                                                             </div>
                                                             <div className="text-sm font-black text-slate-400 py-6 tracking-widest leading-none">20{b.y}</div>
@@ -428,7 +443,7 @@
                                                         <h5 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white leading-tight uppercase tracking-tighter">{quizQuestions[quizStep].q}</h5>
                                                         <div className="space-y-4">
                                                             {quizQuestions[quizStep].a.map((opt, i) => (
-                                                                <button key={i} onClick={() => { if(i === quizQuestions[quizStep].correct) setQuizScore(quizScore + 1); if(quizStep < quizQuestions.length - 1) setQuizStep(quizStep + 1); else setShowResult(true); }} className={`w-full py-6 rounded-[3rem] border-2 font-black transition-all hover:border-indigo-600 shadow-xl active:scale-95 ${isDark ? 'border-slate-800 bg-slate-800 text-slate-100' : 'border-slate-100 bg-slate-50 text-slate-600'}`}>{opt}</button>
+                                                                <button key={i} onClick={() => { if(i === quizQuestions[quizStep].correct) setQuizScore(quizScore + 1); if(quizStep < quizQuestions.length - 1) setQuizStep(quizStep + 1); else setShowResult(true); }} className={`w-full py-6 rounded-[3rem] border-2 font-black transition-all hover:border-indigo-600 shadow-xl active:scale-95 ${isDark ? 'border-slate-800 bg-slate-800 text-slate-100 shadow-sm' : 'border-slate-100 bg-slate-50 text-slate-600 shadow-sm'}`}>{opt}</button>
                                                             ))}
                                                         </div>
                                                     </div>
@@ -441,12 +456,11 @@
                                                 )}
                                             </div>
                                         ) : t.sections[activeTab].url ? (
-                                            <iframe src={t.sections[activeTab].url} className="w-full h-full border-none shadow-inner" title="External Resource" />
+                                            <iframe src={t.sections[activeTab].url} className="w-full h-full border-none shadow-inner" title="External" />
                                         ) : (
                                             <div className="p-20 flex flex-col items-center justify-center text-center h-full text-slate-800 dark:text-white">
                                                 <Icon name="library" size={100} className="text-indigo-600 opacity-20 animate-pulse" />
-                                                <h4 className="text-5xl font-black tracking-tighter uppercase leading-tight">Research Framework</h4>
-                                                <p className="text-lg opacity-40 max-w-sm font-medium mt-6 leading-relaxed">This academic ecosystem analyzes the convergence of tradition and digital innovation.</p>
+                                                <h4 className="text-5xl font-black tracking-tighter uppercase leading-tight">Academic Framework</h4>
                                             </div>
                                         )}
                                     </div>
@@ -455,7 +469,7 @@
                         </main>
 
                         <footer className={`border-t py-10 px-12 shrink-0 z-30 transition-colors ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-100'}`}>
-                            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">
                                 <div className="flex items-center gap-6 group cursor-pointer">
                                     <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl transition-transform group-hover:rotate-12"><Icon name="linkedin" size={24} /></div>
                                     <a href="https://linkedin.com/in/faramarzkowsari" target="_blank" className="text-sm font-black text-slate-800 dark:text-white hover:text-indigo-600 transition-colors tracking-tighter leading-none">Faramarz Kowsari</a>
